@@ -39,16 +39,3 @@ jobs:
       - name: Run the core only
         run: |
           php -r 'require "vendor/autoload.php"; exit((new IntrAgile\HungarianWorkdays\Calendar())->isWorkday(new DateTimeImmutable("2026-03-16")) ? 0 : 1);'
-
-  schedule-coverage:
-    # Weekly alarm: from 31 October the bundled data must cover the next year. Runs only on the
-    # weekly schedule (or by hand), so an overdue decree does not block ordinary pushes.
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: shivammathur/setup-php@v2
-        with:
-          php: '8.3'
-          coverage: none
-      - run: php bin/check-coverage.php

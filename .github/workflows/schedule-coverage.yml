@@ -1,0 +1,18 @@
+name: schedule-coverage
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+jobs:
+  schedule-coverage:
+    # Weekly alarm: the bundled data must cover the current year, and from 31 October the next
+    # year too. Kept apart from the test workflow so an overdue decree never turns the tests
+    # badge red.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php: '8.3'
+          coverage: none
+      - run: php bin/check-coverage.php
