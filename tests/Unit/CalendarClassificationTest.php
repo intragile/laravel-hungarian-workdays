@@ -8,33 +8,14 @@ use DateTimeImmutable;
 use DateTimeZone;
 use IntrAgile\HungarianWorkdays\Calendar;
 use IntrAgile\HungarianWorkdays\DayType;
-use IntrAgile\HungarianWorkdays\Schedule;
 use IntrAgile\HungarianWorkdays\ScheduleRepository;
+use IntrAgile\HungarianWorkdays\Tests\Support\BuildsFixtureCalendar;
 use IntrAgile\HungarianWorkdays\Tests\TestCase;
 use IntrAgile\HungarianWorkdays\UncoveredYearException;
 
 final class CalendarClassificationTest extends TestCase
 {
-    /**
-     * @param  list<string>  $restDays
-     * @param  list<string>  $workdays
-     */
-    private function schedule(int $year, array $restDays = [], array $workdays = []): Schedule
-    {
-        return Schedule::fromArray($year, [
-            'source' => 'Test decree',
-            'url' => 'https://njt.jog.gov.hu/jogszabaly/test',
-            'rest_days' => $restDays,
-            'workdays' => $workdays,
-        ]);
-    }
-
-    private function calendar(): Calendar
-    {
-        return new Calendar(new ScheduleRepository([
-            2026 => $this->schedule(2026, ['2026-01-02', '2026-08-21'], ['2026-01-10', '2026-08-08']),
-        ]));
-    }
+    use BuildsFixtureCalendar;
 
     public function test_day_types_follow_the_precedence_order(): void
     {
