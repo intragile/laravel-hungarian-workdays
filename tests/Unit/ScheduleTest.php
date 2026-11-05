@@ -53,6 +53,27 @@ final class ScheduleTest extends TestCase
         $this->assertSame(['2012-12-31'], $schedule->restDays);
     }
 
+    public function test_rejects_a_year_before_2013(): void
+    {
+        $this->expectException(InvalidScheduleException::class);
+        $this->expectExceptionMessage('Schedule 2012: schedules are supported from 2013.');
+        Schedule::fromArray(2012, $this->data(['rest_days' => [], 'worked_saturdays' => []]));
+    }
+
+    public function test_rejects_a_date_more_than_one_year_before_the_decree_year(): void
+    {
+        $this->expectException(InvalidScheduleException::class);
+        $this->expectExceptionMessage("Schedule 2025: '2023-12-29' lies outside 2024 and 2025.");
+        Schedule::fromArray(2025, $this->data(['rest_days' => ['2023-12-29']]));
+    }
+
+    public function test_rejects_a_date_in_the_year_after_the_decree_year(): void
+    {
+        $this->expectException(InvalidScheduleException::class);
+        $this->expectExceptionMessage("Schedule 2025: '2026-01-02' lies outside 2024 and 2025.");
+        Schedule::fromArray(2025, $this->data(['rest_days' => ['2026-01-02']]));
+    }
+
     public function test_rejects_an_invalid_date(): void
     {
         $this->expectExceptionMessage('is not a valid Y-m-d date');

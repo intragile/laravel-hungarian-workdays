@@ -12,11 +12,14 @@ use DateTimeZone;
  * worked in exchange.
  *
  * A date cannot appear in both lists: worked days must be Saturdays and rest days weekdays.
- * Dates may lie outside the decree year; a decree can legitimately reach into the
- * preceding year.
+ * Dates must fall in the decree year or the year before it: a decree can legitimately reach
+ * into the preceding year (the 2013 decree moves days in December 2012), but no further.
  */
 final readonly class Schedule
 {
+    /** First year covered by the statutory holiday rules; no earlier schedule is accepted. */
+    private const FIRST_YEAR = 2013;
+
     /**
      * @param  list<string>  $restDays  Moved rest days (Y-m-d)
      * @param  list<string>  $workedSaturdays  Worked Saturdays (Y-m-d)
@@ -36,6 +39,10 @@ final readonly class Schedule
      */
     public static function fromArray(int $year, array $data): self
     {
+        if ($year < self::FIRST_YEAR) {
+            throw new InvalidScheduleException("Schedule $year: schedules are supported from ".self::FIRST_YEAR.'.');
+        }
+
         $source = self::string($year, $data, 'source');
         $url = self::string($year, $data, 'url');
         $restDays = self::dates($year, $data, 'rest_days');
@@ -99,7 +106,12 @@ final readonly class Schedule
                 throw new InvalidScheduleException("Schedule $year: '$key' must contain only Y-m-d strings.");
             }
 
-            self::day($date, $year);
+            $day = self::day($date, $year);
+
+            if ((int) $day->format('Y') < $year - 1 || (int) $day->format('Y') > $year) {
+                throw new InvalidScheduleException("Schedule $year: '$date' lies outside ".($year - 1)." and $year.");
+            }
+
             $dates[] = $date;
         }
 

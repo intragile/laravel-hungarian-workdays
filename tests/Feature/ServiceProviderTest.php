@@ -60,6 +60,47 @@ final class ServiceProviderTest extends TestCase
         app(Calendar::class);
     }
 
+    public function test_non_year_config_key_throws_naming_the_key(): void
+    {
+        config()->set('workdays.schedules', [
+            'next' => ['source' => 'Bad', 'url' => 'https://example.test', 'rest_days' => [], 'worked_saturdays' => []],
+        ]);
+
+        $this->expectException(InvalidScheduleException::class);
+        $this->expectExceptionMessage("Config 'workdays.schedules' key 'next' is not a year");
+
+        app(Calendar::class);
+    }
+
+    public function test_non_array_config_entry_throws_naming_the_key(): void
+    {
+        config()->set('workdays.schedules', [2027 => 'not an array']);
+
+        $this->expectException(InvalidScheduleException::class);
+        $this->expectExceptionMessage("Config 'workdays.schedules' entry for 2027 must be an array.");
+
+        app(Calendar::class);
+    }
+
+    public function test_non_array_schedules_config_throws(): void
+    {
+        config()->set('workdays.schedules', 'oops');
+
+        $this->expectException(InvalidScheduleException::class);
+        $this->expectExceptionMessage("Config 'workdays.schedules' must be an array keyed by year.");
+
+        app(Calendar::class);
+    }
+
+    public function test_integer_like_string_key_is_accepted(): void
+    {
+        config()->set('workdays.schedules', [
+            '2027' => ['source' => 'Test', 'url' => 'https://example.test', 'rest_days' => [], 'worked_saturdays' => []],
+        ]);
+
+        $this->assertTrue(app(Calendar::class)->isCovered(2027));
+    }
+
     public function test_assume_no_transfers_defaults_to_false_and_can_be_enabled(): void
     {
         $this->assertFalse(config()->get('workdays.assume_no_transfers'));

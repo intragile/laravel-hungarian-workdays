@@ -10,6 +10,7 @@ use Illuminate\Contracts\Validation\Factory;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Validator;
 use IntrAgile\HungarianWorkdays\Calendar;
+use IntrAgile\HungarianWorkdays\InvalidScheduleException;
 use IntrAgile\HungarianWorkdays\Laravel\Console\CoverageCommand;
 use IntrAgile\HungarianWorkdays\Laravel\Rules\HungarianWorkday;
 use IntrAgile\HungarianWorkdays\Schedule;
@@ -28,8 +29,21 @@ final class HungarianWorkdaysServiceProvider extends ServiceProvider
             $schedules = [];
             $configured = $config->get('workdays.schedules', []);
 
-            foreach (is_array($configured) ? $configured : [] as $year => $data) {
-                $schedules[] = Schedule::fromArray((int) $year, is_array($data) ? $data : []);
+            if (! is_array($configured)) {
+                throw new InvalidScheduleException("Config 'workdays.schedules' must be an array keyed by year.");
+            }
+
+            foreach ($configured as $year => $data) {
+                // PHP already turns integer-like string keys such as "2027" into integers.
+                if (! is_int($year)) {
+                    throw new InvalidScheduleException("Config 'workdays.schedules' key '$year' is not a year; keys must be integers.");
+                }
+
+                if (! is_array($data)) {
+                    throw new InvalidScheduleException("Config 'workdays.schedules' entry for $year must be an array.");
+                }
+
+                $schedules[] = Schedule::fromArray((int) $year, $data);
             }
 
             return new Calendar(
