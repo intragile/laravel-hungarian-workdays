@@ -55,36 +55,42 @@ final class ScheduleTest extends TestCase
 
     public function test_rejects_an_invalid_date(): void
     {
+        $this->expectExceptionMessage('is not a valid Y-m-d date');
         $this->expectException(InvalidScheduleException::class);
         Schedule::fromArray(2025, $this->data(['workdays' => ['2025-02-30']]));
     }
 
     public function test_rejects_a_malformed_date(): void
     {
+        $this->expectExceptionMessage('is not a valid Y-m-d date');
         $this->expectException(InvalidScheduleException::class);
         Schedule::fromArray(2025, $this->data(['workdays' => ['17/05/2025']]));
     }
 
     public function test_rejects_a_workday_that_is_not_a_saturday(): void
     {
+        $this->expectExceptionMessage('is not a Saturday');
         $this->expectException(InvalidScheduleException::class);
         Schedule::fromArray(2025, $this->data(['workdays' => ['2025-05-18']]));
     }
 
     public function test_rejects_a_weekend_rest_day(): void
     {
+        $this->expectExceptionMessage('falls on a weekend');
         $this->expectException(InvalidScheduleException::class);
         Schedule::fromArray(2025, $this->data(['rest_days' => ['2025-05-03']]));
     }
 
     public function test_rejects_a_rest_day_that_is_a_public_holiday(): void
     {
+        $this->expectExceptionMessage('is a public holiday');
         $this->expectException(InvalidScheduleException::class);
         Schedule::fromArray(2025, $this->data(['rest_days' => ['2025-05-01']]));
     }
 
-    public function test_rejects_a_day_listed_as_both_rest_day_and_workday(): void
+    public function test_a_day_listed_in_both_lists_is_rejected_by_the_weekday_rule(): void
     {
+        $this->expectExceptionMessage('falls on a weekend');
         $this->expectException(InvalidScheduleException::class);
         Schedule::fromArray(2025, $this->data([
             'rest_days' => ['2025-05-02', '2025-05-17'],
@@ -92,8 +98,17 @@ final class ScheduleTest extends TestCase
         ]));
     }
 
+    public function test_rejects_a_workday_that_is_a_public_holiday(): void
+    {
+        // 2014-03-15 is a Saturday and a public holiday.
+        $this->expectException(InvalidScheduleException::class);
+        $this->expectExceptionMessage('worked day 2014-03-15 is a public holiday');
+        Schedule::fromArray(2014, $this->data(['rest_days' => [], 'workdays' => ['2014-03-15']]));
+    }
+
     public function test_rejects_missing_keys(): void
     {
+        $this->expectExceptionMessage("'url' must be a string");
         $data = $this->data();
         unset($data['url']);
 
@@ -103,18 +118,21 @@ final class ScheduleTest extends TestCase
 
     public function test_rejects_non_string_values(): void
     {
+        $this->expectExceptionMessage("'source' must be a string");
         $this->expectException(InvalidScheduleException::class);
         Schedule::fromArray(2025, $this->data(['source' => 42]));
     }
 
     public function test_rejects_a_non_list_of_dates(): void
     {
+        $this->expectExceptionMessage("'workdays' must be a list of dates");
         $this->expectException(InvalidScheduleException::class);
         Schedule::fromArray(2025, $this->data(['workdays' => '2025-05-17']));
     }
 
     public function test_rejects_a_non_string_date(): void
     {
+        $this->expectExceptionMessage('must contain only Y-m-d strings');
         $this->expectException(InvalidScheduleException::class);
         Schedule::fromArray(2025, $this->data(['rest_days' => [20250502]]));
     }

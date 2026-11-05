@@ -11,6 +11,7 @@ use DateTimeZone;
  * The work schedule decreed for one calendar year: moved rest days and the Saturdays
  * worked in exchange.
  *
+ * A date cannot appear in both lists: worked days must be Saturdays and rest days weekdays.
  * Dates may lie outside the decree year; a decree can legitimately reach into the
  * preceding year.
  */
@@ -44,6 +45,10 @@ final readonly class Schedule
             if (self::day($date)->format('N') !== '6') {
                 throw new InvalidScheduleException("Schedule $year: worked day $date is not a Saturday.");
             }
+
+            if (isset(Holiday::forYear((int) self::day($date)->format('Y'))[$date])) {
+                throw new InvalidScheduleException("Schedule $year: worked day $date is a public holiday.");
+            }
         }
 
         foreach ($restDays as $date) {
@@ -56,14 +61,6 @@ final readonly class Schedule
             if (isset(Holiday::forYear((int) $day->format('Y'))[$date])) {
                 throw new InvalidScheduleException("Schedule $year: rest day $date is a public holiday.");
             }
-        }
-
-        $overlap = array_intersect($restDays, $workdays);
-
-        if ($overlap !== []) {
-            throw new InvalidScheduleException(
-                "Schedule $year: ".reset($overlap).' is both a rest day and a worked day.',
-            );
         }
 
         return new self($year, $source, $url, $restDays, $workdays);
