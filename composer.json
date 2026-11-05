@@ -1,6 +1,6 @@
 {
     "name": "intragile/laravel-hungarian-workdays",
-    "description": "Hungarian workday calendar: statutory holidays, bridge days and working Saturdays, workday arithmetic and Carbon macros. Magyar munkanap-naptár: munkaszüneti napok, áthelyezett munkanapok, ledolgozós szombatok.",
+    "description": "Hungarian workday calendar with workday arithmetic, Carbon macros and a validation rule: public holidays, bridge days and working Saturdays from the official decrees. Magyar munkanap-naptár: munkaszüneti napok, áthelyezett munkanapok, ledolgozós szombatok, munkanap-számítás.",
     "keywords": [
         "laravel",
         "hungary",

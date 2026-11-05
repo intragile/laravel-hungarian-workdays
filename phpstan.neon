@@ -5,6 +5,7 @@ parameters:
     paths:
         - src
         - tests
+        - bin
     ignoreErrors:
         # The macros are registered at runtime by the service provider, so they do not exist
         # on Carbon as far as static analysis can tell. Scoped to the one test that calls them.
