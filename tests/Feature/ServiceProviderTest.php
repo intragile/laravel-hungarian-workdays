@@ -19,7 +19,7 @@ final class ServiceProviderTest extends TestCase
 
         $this->assertSame($calendar, app(Calendar::class));
         $this->assertTrue($calendar->isCovered(2026));
-        $this->assertFalse($calendar->isCovered(2027));
+        $this->assertFalse($calendar->isCovered(2099));
     }
 
     public function test_configured_schedule_is_added_to_the_calendar(): void
@@ -68,7 +68,7 @@ final class ServiceProviderTest extends TestCase
         config()->set('workdays.assume_no_transfers', true);
         $calendar = app(Calendar::class);
 
-        $this->assertTrue($calendar->isWorkday(new DateTimeImmutable('2027-03-03')));
+        $this->assertTrue($calendar->isWorkday(new DateTimeImmutable('2099-03-03')));
     }
 
     public function test_facade_proxies_the_calendar(): void

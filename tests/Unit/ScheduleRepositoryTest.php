@@ -56,11 +56,14 @@ final class ScheduleRepositoryTest extends TestCase
         $this->assertSame(['2029-12-29' => true], $repository->workdays());
     }
 
-    public function test_bundled_repository_covers_2013_to_2026(): void
+    public function test_bundled_repository_covers_a_contiguous_range_from_2013_to_at_least_2026(): void
     {
         $repository = ScheduleRepository::bundled();
+        $years = $repository->years();
 
-        $this->assertSame(range(2013, 2026), $repository->years());
+        $this->assertSame(2013, $years[0]);
+        $this->assertGreaterThanOrEqual(2026, max([2013, ...$years]));
+        $this->assertSame(range(2013, max([2013, ...$years])), $years);
         $this->assertArrayHasKey('2026-01-10', $repository->workdays());
     }
 }
