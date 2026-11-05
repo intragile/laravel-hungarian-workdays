@@ -12,15 +12,15 @@ trait BuildsFixtureCalendar
 {
     /**
      * @param  list<string>  $restDays
-     * @param  list<string>  $workdays
+     * @param  list<string>  $workedSaturdays
      */
-    private function schedule(int $year, array $restDays = [], array $workdays = []): Schedule
+    private function schedule(int $year, array $restDays = [], array $workedSaturdays = []): Schedule
     {
         return Schedule::fromArray($year, [
             'source' => 'Test decree',
             'url' => 'https://njt.jog.gov.hu/jogszabaly/test',
             'rest_days' => $restDays,
-            'workdays' => $workdays,
+            'worked_saturdays' => $workedSaturdays,
         ]);
     }
 

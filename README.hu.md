@@ -122,8 +122,8 @@ Közlönyben megjelent rendeletből vedd; az alábbi listák **üres helyőrzők
     2027 => [
         'source' => 'A 2027. évi munkarendi rendelet címe',            // töltsd ki
         'url' => 'https://njt.jog.gov.hu/...',                        // töltsd ki
-        'rest_days' => [],   // pihenőnappá vált hétköznapok, pl. '2027-05-14'
-        'workdays' => [],    // cserébe ledolgozott szombatok, pl. '2027-05-22'
+        'rest_days' => [],          // pihenőnappá vált hétköznapok, pl. '2027-05-14'
+        'worked_saturdays' => [], // cserébe ledolgozott szombatok, pl. '2027-05-22'
     ],
 ],
 ```
@@ -140,7 +140,7 @@ $calendar = new Calendar(
         'source' => 'A 2027. évi munkarendi rendelet címe',
         'url' => 'https://njt.jog.gov.hu/...',
         'rest_days' => [],
-        'workdays' => [],
+        'worked_saturdays' => [],
     ])),
 );
 ```

@@ -29,7 +29,7 @@ final class ServiceProviderTest extends TestCase
                 'source' => 'Test decree',
                 'url' => 'https://njt.jog.gov.hu/jogszabaly/test',
                 'rest_days' => ['2027-05-14'],
-                'workdays' => ['2027-05-22'],
+                'worked_saturdays' => ['2027-05-22'],
             ],
         ]);
 
@@ -43,7 +43,7 @@ final class ServiceProviderTest extends TestCase
     public function test_configured_schedule_overrides_the_bundled_year(): void
     {
         config()->set('workdays.schedules', [
-            2026 => ['source' => 'Override', 'url' => 'https://example.test', 'rest_days' => [], 'workdays' => []],
+            2026 => ['source' => 'Override', 'url' => 'https://example.test', 'rest_days' => [], 'worked_saturdays' => []],
         ]);
 
         $this->assertTrue(app(Calendar::class)->isWorkday(new DateTimeImmutable('2026-01-02')));
@@ -52,7 +52,7 @@ final class ServiceProviderTest extends TestCase
     public function test_invalid_configured_schedule_throws(): void
     {
         config()->set('workdays.schedules', [
-            2027 => ['source' => 'Bad', 'url' => 'https://example.test', 'rest_days' => ['2027-05-15'], 'workdays' => []],
+            2027 => ['source' => 'Bad', 'url' => 'https://example.test', 'rest_days' => ['2027-05-15'], 'worked_saturdays' => []],
         ]);
 
         $this->expectException(InvalidScheduleException::class);

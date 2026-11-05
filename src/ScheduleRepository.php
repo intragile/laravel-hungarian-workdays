@@ -18,7 +18,7 @@ final class ScheduleRepository
     private readonly array $restDays;
 
     /** @var array<string, true> */
-    private readonly array $workdays;
+    private readonly array $workedSaturdays;
 
     /**
      * @param  array<int, Schedule>  $schedules
@@ -34,7 +34,7 @@ final class ScheduleRepository
         ksort($byYear);
 
         $restDays = [];
-        $workdays = [];
+        $workedSaturdays = [];
 
         // Indexed by the date itself: a decree may list days outside its own year.
         foreach ($byYear as $schedule) {
@@ -42,14 +42,14 @@ final class ScheduleRepository
                 $restDays[$date] = true;
             }
 
-            foreach ($schedule->workdays as $date) {
-                $workdays[$date] = true;
+            foreach ($schedule->workedSaturdays as $date) {
+                $workedSaturdays[$date] = true;
             }
         }
 
         $this->schedules = $byYear;
         $this->restDays = $restDays;
-        $this->workdays = $workdays;
+        $this->workedSaturdays = $workedSaturdays;
     }
 
     /**
@@ -104,6 +104,10 @@ final class ScheduleRepository
     }
 
     /**
+     * Index of moved rest days by date.
+     *
+     * @internal
+     *
      * @return array<string, true>
      */
     public function restDays(): array
@@ -112,10 +116,14 @@ final class ScheduleRepository
     }
 
     /**
+     * Index of worked Saturdays by date.
+     *
+     * @internal
+     *
      * @return array<string, true>
      */
-    public function workdays(): array
+    public function workedSaturdays(): array
     {
-        return $this->workdays;
+        return $this->workedSaturdays;
     }
 }

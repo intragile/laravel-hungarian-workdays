@@ -124,8 +124,8 @@ real data:
     2027 => [
         'source' => 'Title of the 2027 work schedule decree',          // fill in
         'url' => 'https://njt.jog.gov.hu/...',                        // fill in
-        'rest_days' => [],   // weekdays that became rest days, e.g. '2027-05-14'
-        'workdays' => [],    // Saturdays worked in exchange, e.g. '2027-05-22'
+        'rest_days' => [],          // weekdays that became rest days, e.g. '2027-05-14'
+        'worked_saturdays' => [], // Saturdays worked in exchange, e.g. '2027-05-22'
     ],
 ],
 ```
@@ -142,7 +142,7 @@ $calendar = new Calendar(
         'source' => 'Title of the 2027 work schedule decree',
         'url' => 'https://njt.jog.gov.hu/...',
         'rest_days' => [],
-        'workdays' => [],
+        'worked_saturdays' => [],
     ])),
 );
 ```

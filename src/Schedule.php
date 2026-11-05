@@ -19,18 +19,18 @@ final readonly class Schedule
 {
     /**
      * @param  list<string>  $restDays  Moved rest days (Y-m-d)
-     * @param  list<string>  $workdays  Worked Saturdays (Y-m-d)
+     * @param  list<string>  $workedSaturdays  Worked Saturdays (Y-m-d)
      */
     private function __construct(
         public int $year,
         public string $source,
         public string $url,
         public array $restDays,
-        public array $workdays,
+        public array $workedSaturdays,
     ) {}
 
     /**
-     * @param  array<mixed>  $data  Keys: source, url, rest_days, workdays
+     * @param  array<mixed>  $data  Keys: source, url, rest_days, worked_saturdays
      *
      * @throws InvalidScheduleException
      */
@@ -39,9 +39,9 @@ final readonly class Schedule
         $source = self::string($year, $data, 'source');
         $url = self::string($year, $data, 'url');
         $restDays = self::dates($year, $data, 'rest_days');
-        $workdays = self::dates($year, $data, 'workdays');
+        $workedSaturdays = self::dates($year, $data, 'worked_saturdays');
 
-        foreach ($workdays as $date) {
+        foreach ($workedSaturdays as $date) {
             if (self::day($date)->format('N') !== '6') {
                 throw new InvalidScheduleException("Schedule $year: worked day $date is not a Saturday.");
             }
@@ -63,7 +63,7 @@ final readonly class Schedule
             }
         }
 
-        return new self($year, $source, $url, $restDays, $workdays);
+        return new self($year, $source, $url, $restDays, $workedSaturdays);
     }
 
     /**

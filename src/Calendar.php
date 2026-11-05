@@ -59,7 +59,7 @@ final class Calendar
             return DayType::RestDay;
         }
 
-        if (isset($this->schedules->workdays()[$ymd])) {
+        if (isset($this->schedules->workedSaturdays()[$ymd])) {
             return DayType::TransferredWorkday;
         }
 

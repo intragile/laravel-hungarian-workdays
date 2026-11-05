@@ -57,7 +57,7 @@ final class CoverageCommandTest extends TestCase
     {
         Carbon::setTestNow('2040-11-05');
         config()->set('workdays.schedules', [
-            2041 => ['source' => 'Test', 'url' => 'https://example.test', 'rest_days' => [], 'workdays' => []],
+            2041 => ['source' => 'Test', 'url' => 'https://example.test', 'rest_days' => [], 'worked_saturdays' => []],
         ]);
 
         $this->command('workdays:coverage')->assertExitCode(0);
@@ -67,7 +67,7 @@ final class CoverageCommandTest extends TestCase
     {
         Carbon::setTestNow('2040-06-01');
         config()->set('workdays.schedules', [
-            2099 => ['source' => 'Test', 'url' => 'https://example.test', 'rest_days' => [], 'workdays' => []],
+            2099 => ['source' => 'Test', 'url' => 'https://example.test', 'rest_days' => [], 'worked_saturdays' => []],
         ]);
 
         $this->command('workdays:coverage')

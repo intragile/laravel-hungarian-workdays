@@ -16,8 +16,8 @@ return [
     |   2027 => [
     |       'source' => 'Decree title',
     |       'url' => 'https://njt.jog.gov.hu/...',
-    |       'rest_days' => ['2027-05-14'],   // weekdays that became rest days (Y-m-d)
-    |       'workdays' => ['2027-05-22'],    // Saturdays worked in exchange (Y-m-d)
+    |       'rest_days' => ['2027-05-14'],       // weekdays that became rest days (Y-m-d)
+    |       'worked_saturdays' => ['2027-05-22'], // Saturdays worked in exchange (Y-m-d)
     |   ],
     |
     */

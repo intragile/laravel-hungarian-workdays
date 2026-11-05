@@ -44,7 +44,7 @@ final class BundledSchedulesTest extends TestCase
 
     public function test_2026_has_no_december_12_workday(): void
     {
-        $this->assertNotContains('2026-12-12', $this->schedule(2026)->workdays);
+        $this->assertNotContains('2026-12-12', $this->schedule(2026)->workedSaturdays);
     }
 
     public function test_2026_has_no_december_24_rest_day(): void
@@ -57,7 +57,7 @@ final class BundledSchedulesTest extends TestCase
         foreach ([2017, 2023] as $year) {
             $schedule = $this->schedule($year);
             $this->assertSame([], $schedule->restDays);
-            $this->assertSame([], $schedule->workdays);
+            $this->assertSame([], $schedule->workedSaturdays);
         }
     }
 
@@ -65,7 +65,7 @@ final class BundledSchedulesTest extends TestCase
     {
         $schedule = $this->schedule(2013);
         $this->assertContains('2012-12-31', $schedule->restDays);
-        $this->assertContains('2012-12-01', $schedule->workdays);
+        $this->assertContains('2012-12-01', $schedule->workedSaturdays);
     }
 
     /**
@@ -109,14 +109,14 @@ final class BundledSchedulesTest extends TestCase
     {
         $schedule = $this->schedule($year);
         $this->assertContains($restDay, $schedule->restDays);
-        $this->assertContains($workday, $schedule->workdays);
+        $this->assertContains($workday, $schedule->workedSaturdays);
     }
 
     public function test_2026_keeps_the_two_remaining_pairs(): void
     {
         $schedule = $this->schedule(2026);
         $this->assertSame(['2026-01-02', '2026-08-21'], $schedule->restDays);
-        $this->assertSame(['2026-01-10', '2026-08-08'], $schedule->workdays);
+        $this->assertSame(['2026-01-10', '2026-08-08'], $schedule->workedSaturdays);
     }
 
     private function schedule(int $year): Schedule

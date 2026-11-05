@@ -12,15 +12,15 @@ final class ScheduleRepositoryTest extends TestCase
 {
     /**
      * @param  list<string>  $restDays
-     * @param  list<string>  $workdays
+     * @param  list<string>  $workedSaturdays
      */
-    private function schedule(int $year, array $restDays = [], array $workdays = []): Schedule
+    private function schedule(int $year, array $restDays = [], array $workedSaturdays = []): Schedule
     {
         return Schedule::fromArray($year, [
             'source' => 'Test decree',
             'url' => 'https://njt.jog.gov.hu/jogszabaly/test',
             'rest_days' => $restDays,
-            'workdays' => $workdays,
+            'worked_saturdays' => $workedSaturdays,
         ]);
     }
 
@@ -45,7 +45,7 @@ final class ScheduleRepositoryTest extends TestCase
         $this->assertSame(['2026-01-02' => true], $original->restDays());
         $this->assertSame([2026], $original->years());
         $this->assertSame(['2026-08-21' => true], $replaced->restDays());
-        $this->assertSame(['2026-08-08' => true], $replaced->workdays());
+        $this->assertSame(['2026-08-08' => true], $replaced->workedSaturdays());
         $this->assertSame([2026, 2027], $replaced->years());
     }
 
@@ -53,7 +53,7 @@ final class ScheduleRepositoryTest extends TestCase
     {
         $repository = new ScheduleRepository([2030 => $this->schedule(2030, [], ['2029-12-29'])]);
 
-        $this->assertSame(['2029-12-29' => true], $repository->workdays());
+        $this->assertSame(['2029-12-29' => true], $repository->workedSaturdays());
     }
 
     public function test_bundled_repository_covers_a_contiguous_range_from_2013_to_at_least_2026(): void
@@ -64,6 +64,6 @@ final class ScheduleRepositoryTest extends TestCase
         $this->assertSame(2013, $years[0]);
         $this->assertGreaterThanOrEqual(2026, max([2013, ...$years]));
         $this->assertSame(range(2013, max([2013, ...$years])), $years);
-        $this->assertArrayHasKey('2026-01-10', $repository->workdays());
+        $this->assertArrayHasKey('2026-01-10', $repository->workedSaturdays());
     }
 }

@@ -20,7 +20,7 @@ final class ScheduleTest extends TestCase
             'source' => 'Test decree',
             'url' => 'https://njt.jog.gov.hu/jogszabaly/test',
             'rest_days' => ['2025-05-02'],
-            'workdays' => ['2025-05-17'],
+            'worked_saturdays' => ['2025-05-17'],
         ], $overrides);
     }
 
@@ -32,22 +32,22 @@ final class ScheduleTest extends TestCase
         $this->assertSame('Test decree', $schedule->source);
         $this->assertSame('https://njt.jog.gov.hu/jogszabaly/test', $schedule->url);
         $this->assertSame(['2025-05-02'], $schedule->restDays);
-        $this->assertSame(['2025-05-17'], $schedule->workdays);
+        $this->assertSame(['2025-05-17'], $schedule->workedSaturdays);
     }
 
     public function test_empty_lists_are_valid(): void
     {
-        $schedule = Schedule::fromArray(2023, $this->data(['rest_days' => [], 'workdays' => []]));
+        $schedule = Schedule::fromArray(2023, $this->data(['rest_days' => [], 'worked_saturdays' => []]));
 
         $this->assertSame([], $schedule->restDays);
-        $this->assertSame([], $schedule->workdays);
+        $this->assertSame([], $schedule->workedSaturdays);
     }
 
     public function test_dates_outside_the_decree_year_are_accepted(): void
     {
         $schedule = Schedule::fromArray(2013, $this->data([
             'rest_days' => ['2012-12-31'],
-            'workdays' => ['2012-12-01'],
+            'worked_saturdays' => ['2012-12-01'],
         ]));
 
         $this->assertSame(['2012-12-31'], $schedule->restDays);
@@ -57,21 +57,21 @@ final class ScheduleTest extends TestCase
     {
         $this->expectExceptionMessage('is not a valid Y-m-d date');
         $this->expectException(InvalidScheduleException::class);
-        Schedule::fromArray(2025, $this->data(['workdays' => ['2025-02-30']]));
+        Schedule::fromArray(2025, $this->data(['worked_saturdays' => ['2025-02-30']]));
     }
 
     public function test_rejects_a_malformed_date(): void
     {
         $this->expectExceptionMessage('is not a valid Y-m-d date');
         $this->expectException(InvalidScheduleException::class);
-        Schedule::fromArray(2025, $this->data(['workdays' => ['17/05/2025']]));
+        Schedule::fromArray(2025, $this->data(['worked_saturdays' => ['17/05/2025']]));
     }
 
     public function test_rejects_a_workday_that_is_not_a_saturday(): void
     {
         $this->expectExceptionMessage('is not a Saturday');
         $this->expectException(InvalidScheduleException::class);
-        Schedule::fromArray(2025, $this->data(['workdays' => ['2025-05-18']]));
+        Schedule::fromArray(2025, $this->data(['worked_saturdays' => ['2025-05-18']]));
     }
 
     public function test_rejects_a_weekend_rest_day(): void
@@ -94,7 +94,7 @@ final class ScheduleTest extends TestCase
         $this->expectException(InvalidScheduleException::class);
         Schedule::fromArray(2025, $this->data([
             'rest_days' => ['2025-05-02', '2025-05-17'],
-            'workdays' => ['2025-05-17'],
+            'worked_saturdays' => ['2025-05-17'],
         ]));
     }
 
@@ -103,7 +103,7 @@ final class ScheduleTest extends TestCase
         // 2014-03-15 is a Saturday and a public holiday.
         $this->expectException(InvalidScheduleException::class);
         $this->expectExceptionMessage('worked day 2014-03-15 is a public holiday');
-        Schedule::fromArray(2014, $this->data(['rest_days' => [], 'workdays' => ['2014-03-15']]));
+        Schedule::fromArray(2014, $this->data(['rest_days' => [], 'worked_saturdays' => ['2014-03-15']]));
     }
 
     public function test_rejects_missing_keys(): void
@@ -125,9 +125,9 @@ final class ScheduleTest extends TestCase
 
     public function test_rejects_a_non_list_of_dates(): void
     {
-        $this->expectExceptionMessage("'workdays' must be a list of dates");
+        $this->expectExceptionMessage("'worked_saturdays' must be a list of dates");
         $this->expectException(InvalidScheduleException::class);
-        Schedule::fromArray(2025, $this->data(['workdays' => '2025-05-17']));
+        Schedule::fromArray(2025, $this->data(['worked_saturdays' => '2025-05-17']));
     }
 
     public function test_rejects_a_non_string_date(): void
