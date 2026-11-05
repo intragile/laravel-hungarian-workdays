@@ -1,0 +1,40 @@
+name: tests
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 6 * * 1"
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.3', '8.4', '8.5']
+        laravel: ['12.*', '13.*']
+    name: PHP ${{ matrix.php }} / Laravel ${{ matrix.laravel }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php: ${{ matrix.php }}
+          coverage: none
+      - run: composer require --dev "illuminate/support:${{ matrix.laravel }}" --no-update --no-interaction
+      - run: composer update --prefer-dist --no-interaction --no-progress
+      - run: vendor/bin/phpunit
+      - run: vendor/bin/phpstan analyse --memory-limit=1G
+      - run: vendor/bin/pint --test
+
+  core-without-laravel:
+    # The core must install and run with no framework packages present.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php: '8.3'
+          coverage: none
+      - run: composer install --no-dev --no-interaction --no-progress
+      - name: Run the core only
+        run: |
+          php -r 'require "vendor/autoload.php"; exit(IntrAgile\HungarianWorkdays\Easter::sunday(2026)->format("Y-m-d") === "2026-04-05" ? 0 : 1);'
