@@ -95,6 +95,12 @@ $calendar->workingHoursInMonth(2026, 3, dailyHours: 8);           // 176
 
 `Holiday` also offers `hungarianName()` and `englishName()`.
 
+`Holiday::dateIn($year)` returns midnight **UTC**, whereas `Calendar` results keep the input's
+timezone. Compare dates by `format('Y-m-d')`, not with `==` on the objects. `Holiday::forYear()`
+and `dateIn()` are range-lenient helpers: for a year before 2013 they return `[]` or `null`,
+which means "outside the supported range", not "not a holiday". Use the `Calendar` methods for
+answers that are range-checked.
+
 ## Coverage and `UncoveredYearException`
 
 The package bundles the schedules of **2013–2026**. 2017 and 2023 had no transfer decree; both
@@ -102,7 +108,12 @@ are bundled as covered, with no moved days.
 
 Asking about a year without a schedule throws `UncoveredYearException` (its `year` property
 carries the year), because a bridge day could otherwise be missed without notice. Years before
-2013 are never supported. Calendar arithmetic that walks into an uncovered year throws as well.
+2013 are never supported: every `Calendar` query about them throws, `holiday()`,
+`isPublicHoliday()` and `holidays()` included, and the exception message says the year is
+outside the supported range. Calendar arithmetic that walks into an uncovered year throws as well.
+
+The holiday rules need no schedule, so those three methods answer for any year from 2013 on,
+covered or not.
 
 ```php
 $calendar->isCovered(2027);   // false
@@ -111,7 +122,7 @@ $calendar->coveredYears();    // [2013, 2014, ..., 2026]
 
 **2027 is not covered yet.** The 2027 decree was due by 2026-10-31 but had not been published
 when this was written (2026-11-05). Until it is, any 2027 date throws. The Artisan command and
-the CI job described below tell you when it is available.
+the CI job described below warn you while it is missing.
 
 ### Adding a year yourself
 
@@ -148,8 +159,10 @@ $calendar = new Calendar(
 ```
 
 A configured (or `with()`) year replaces a bundled one of the same year. `Schedule::fromArray()`
-validates the data and throws `InvalidScheduleException` for a malformed date, a worked day that
-is not a Saturday, a rest day on a weekend, or a date that is already a public holiday.
+validates the data and throws `InvalidScheduleException` for a year before 2013, a malformed
+date, a date outside the decree year and the year before it, a worked day that is not a
+Saturday, a rest day on a weekend, or a date that is already a public holiday. The Laravel
+configuration is checked the same way, and its keys must be years.
 
 ### `assumingNoTransfers()`
 
@@ -197,9 +210,11 @@ now()->previousHungarianWorkday();
 Date-returning macros give an instance of the receiver's own class at 00:00 in its timezone
 and never modify the receiver.
 
-The macros use the `Calendar` resolved when the application boots. In long-lived workers such
-as Octane or queue workers, a change to `workdays.schedules` or `workdays.assume_no_transfers`
-therefore needs a worker restart.
+The `Calendar` is a container singleton, built on first use from the configuration at that
+moment. The macros look it up in the container captured at boot on every call, so they share
+that instance. In long-lived workers such as Octane or queue workers, a change to
+`workdays.schedules` or `workdays.assume_no_transfers` made after the first use therefore
+needs a worker restart.
 
 ### Validation
 
@@ -216,9 +231,19 @@ The value must be a `DateTimeInterface` or a string PHP can parse as a date. Thr
 messages exist, in English and Hungarian: not a date, not a working day, and no schedule
 available for the year (the rule fails instead of throwing).
 
-A message you define yourself (inline, or `validation.hungarian_workday` in your own language
-files) **replaces all three** failure messages. To customise them separately, publish the
-`workdays-lang` files and edit the `hungarian-workdays::validation` entries.
+Customising the message depends on how you use the rule:
+
+- **String rule** (`'hungarian_workday'`): a message you define yourself, inline or as
+  `validation.hungarian_workday` in your own language files, **replaces all three** failure
+  messages.
+- **Rule object** (`new HungarianWorkday`): Laravel looks up custom messages by attribute and
+  rule class, so `validation.hungarian_workday` in your language files does **not** apply. Pass
+  the message to the validator as `'due_date.hungarian_workday'` (or `'due_date.'.HungarianWorkday::class`,
+  or the bare class name), for example from `FormRequest::messages()`. It likewise replaces all
+  three messages for that attribute.
+
+To customise the three messages separately for both forms, publish the `workdays-lang` files and
+edit the `hungarian-workdays::validation` entries.
 
 ### Artisan command
 
@@ -226,9 +251,9 @@ files) **replaces all three** failure messages. To customise them separately, pu
 php artisan workdays:coverage
 ```
 
-Prints the covered years (for example `Covered years: 2013–2026`). From 31 October on it exits
-with a failure and a warning when the schedule for the next year is missing, so a scheduler or
-a deployment check can raise the alarm.
+Prints the covered years (for example `Covered years: 2013–2026`). It exits with a failure and a
+warning whenever the current year is not covered, and from 31 October on also when the schedule
+for the next year is missing, so a scheduler or a deployment check can raise the alarm.
 
 ## Data sources
 
@@ -237,8 +262,9 @@ third-party calendar sites are never used. Decree titles, URLs and the open poin
 pending 24 December promulgation, the 2027 decree) are in [DATA-SOURCES.md](DATA-SOURCES.md).
 Legislation is not subject to copyright in Hungary.
 
-`bin/check-coverage.php` fails from 31 October when next year is not bundled. The repository's
-weekly CI job runs it, so a missing decree surfaces without anyone having to remember.
+`bin/check-coverage.php` fails when the current year is not bundled, and from 31 October when
+next year is not. The repository's separate `schedule-coverage` workflow runs it weekly, so a
+missing decree surfaces without anyone having to remember, and without turning the tests badge red.
 
 ## Related packages
 

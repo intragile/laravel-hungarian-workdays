@@ -94,6 +94,12 @@ $calendar->workingHoursInMonth(2026, 3, dailyHours: 8);           // 176
 
 A `Holiday` ezenfelül `hungarianName()` és `englishName()` metódust kínál.
 
+A `Holiday::dateIn($year)` éjfélt ad **UTC**-ben, míg a `Calendar` eredményei a bemenet
+időzónáját őrzik. A dátumokat `format('Y-m-d')` alapján hasonlítsd össze, ne az objektumokon
+végzett `==`-vel. A `Holiday::forYear()` és a `dateIn()` tartományra engedékeny segédek: 2013
+előtti évre `[]`-t vagy `null`-t adnak, ami azt jelenti, hogy "a támogatott tartományon kívül",
+nem azt, hogy "nem ünnepnap". Tartományellenőrzött választ a `Calendar` metódusai adnak.
+
 ## Lefedettség és `UncoveredYearException`
 
 A csomag a **2013–2026-os** munkarendeket tartalmazza. 2017-ben és 2023-ban nem volt áthelyezési
@@ -101,7 +107,12 @@ rendelet, ezek üres listával, lefedettként szerepelnek.
 
 A munkarend nélküli évre kérdezve `UncoveredYearException` keletkezik (az `year` tulajdonsága
 az évet adja), mert különben egy áthelyezett nap észrevétlenül kimaradhatna. A 2013 előtti évek
-sosem támogatottak. A lefedetlen évbe átlépő számítás is kivételt dob.
+sosem támogatottak: minden `Calendar`-lekérdezés kivételt dob rájuk, a `holiday()`,
+`isPublicHoliday()` és `holidays()` is, és a kivétel üzenete jelzi, hogy az év a támogatott
+tartományon kívül esik. A lefedetlen évbe átlépő számítás is kivételt dob.
+
+Az ünnepnapi szabályokhoz nem kell munkarend, ezért ez a három metódus 2013-tól bármely évre
+válaszol, lefedett-e vagy sem.
 
 ```php
 $calendar->isCovered(2027);   // false
@@ -110,7 +121,7 @@ $calendar->coveredYears();    // [2013, 2014, ..., 2026]
 
 **2027 még nincs lefedve.** A 2027-es rendelet határideje 2026. október 31. volt, de az írás
 idején (2026. november 5.) még nem jelent meg. Amíg meg nem jelenik, minden 2027-es dátum
-kivételt dob. Az alábbi Artisan-parancs és CI-feladat jelzi, ha elérhető.
+kivételt dob. Az alábbi Artisan-parancs és CI-feladat figyelmeztet, amíg hiányzik.
 
 ### Saját év felvétele
 
@@ -146,9 +157,10 @@ $calendar = new Calendar(
 ```
 
 A konfigurált (vagy `with()`-tel megadott) év felülírja az azonos évű beépítettet. A
-`Schedule::fromArray()` ellenőrzi az adatot, és `InvalidScheduleException`-t dob hibás dátumra,
-nem szombatra eső ledolgozós napra, hétvégére eső pihenőnapra, vagy olyan dátumra, amely már
-munkaszüneti nap.
+`Schedule::fromArray()` ellenőrzi az adatot, és `InvalidScheduleException`-t dob 2013 előtti évre, hibás dátumra,
+a rendelet évén és az azt megelőző éven kívüli dátumra, nem szombatra eső ledolgozós napra,
+hétvégére eső pihenőnapra, vagy olyan dátumra, amely már munkaszüneti nap. A Laravel-konfigurációt
+ugyanígy ellenőrzi, és a kulcsoknak éveknek kell lenniük.
 
 ### `assumingNoTransfers()`
 
@@ -197,9 +209,10 @@ now()->previousHungarianWorkday();
 A dátumot visszaadó makrók a címzett saját osztályának példányát adják, a címzett időzónájában
 00:00-kor, és a címzettet nem módosítják.
 
-A makrók az alkalmazás indulásakor feloldott `Calendar`-t használják. Hosszú életű workerekben
-(Octane, queue worker) a `workdays.schedules` vagy a `workdays.assume_no_transfers` módosítása
-ezért worker-újraindítást igényel.
+A `Calendar` konténer-singleton, az első használatkor épül fel az akkori konfigurációból. A
+makrók minden híváskor az induláskor rögzített konténerből kérik le, így ugyanazt a példányt
+használják. Hosszú életű workerekben (Octane, queue worker) a `workdays.schedules` vagy a
+`workdays.assume_no_transfers` első használat utáni módosítása ezért worker-újraindítást igényel.
 
 ### Validáció
 
@@ -216,9 +229,18 @@ Az érték `DateTimeInterface` vagy olyan szöveg lehet, amelyet a PHP dátumké
 hibaüzenet van, magyarul és angolul: nem dátum, nem munkanap, és nincs elérhető munkarend az
 évhez (ilyenkor a szabály megbukik, nem dob kivételt).
 
-Ha te magad definiálsz üzenetet (inline, vagy `validation.hungarian_workday` a saját nyelvi
-fájljaidban), az **mindhárom** hibaüzenetet felülírja. Külön testreszabáshoz tedd közzé a
-`workdays-lang` fájlokat, és szerkeszd a `hungarian-workdays::validation` bejegyzéseket.
+Az üzenet testreszabása attól függ, hogyan használod a szabályt:
+
+- **Szöveges szabály** (`'hungarian_workday'`): az általad definiált üzenet, inline vagy
+  `validation.hungarian_workday` a saját nyelvi fájljaidban, **mindhárom** hibaüzenetet felülírja.
+- **Szabályobjektum** (`new HungarianWorkday`): a Laravel az egyedi üzeneteket mező és
+  szabályosztály szerint keresi, ezért a nyelvi fájlok `validation.hungarian_workday` sora
+  **nem** érvényes. Az üzenetet a validatornak add át `'due_date.hungarian_workday'` (vagy
+  `'due_date.'.HungarianWorkday::class`, esetleg a puszta osztálynév) kulccsal, például a
+  `FormRequest::messages()`-ből. Ez is mindhárom üzenetet felülírja az adott mezőre.
+
+A három üzenet külön testreszabásához mindkét formában tedd közzé a `workdays-lang` fájlokat, és
+szerkeszd a `hungarian-workdays::validation` bejegyzéseket.
 
 ### Artisan-parancs
 
@@ -226,9 +248,9 @@ fájljaidban), az **mindhárom** hibaüzenetet felülírja. Külön testreszabá
 php artisan workdays:coverage
 ```
 
-Kiírja a lefedett éveket (például `Covered years: 2013–2026`). Október 31-től hibával és
-figyelmeztetéssel tér vissza, ha a következő év munkarendje hiányzik, így egy ütemező vagy egy
-telepítési ellenőrzés riaszthat.
+Kiírja a lefedett éveket (például `Covered years: 2013–2026`). Hibával és
+figyelmeztetéssel tér vissza, ha az aktuális év nincs lefedve, október 31-től pedig akkor is, ha
+a következő év munkarendje hiányzik, így egy ütemező vagy egy telepítési ellenőrzés riaszthat.
 
 ## Adatforrások
 
@@ -237,8 +259,9 @@ harmadik fél naptáraiból soha. A rendeletek címe, URL-je és a nyitott ponto
 kihirdetése és a 2027-es rendelet) a [DATA-SOURCES.md](DATA-SOURCES.md) fájlban találhatók. A
 jogszabályok Magyarországon nem esnek szerzői jogi védelem alá.
 
-A `bin/check-coverage.php` október 31-től hibával tér vissza, ha a következő év nincs
-beépítve. A tárhely heti CI-feladata futtatja, így a hiányzó rendelet magától kiderül.
+A `bin/check-coverage.php` hibával tér vissza, ha az aktuális év nincs beépítve, október 31-től
+pedig akkor is, ha a következő év hiányzik. A tárhely különálló `schedule-coverage` workflow-ja
+hetente futtatja, így a hiányzó rendelet magától kiderül, a tesztjelvényt pedig nem teszi pirossá.
 
 ## Kapcsolódó csomagok
 
