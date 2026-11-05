@@ -56,6 +56,16 @@
             "IntrAgile\\HungarianWorkdays\\Tests\\": "tests/"
         }
     },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "IntrAgile\\HungarianWorkdays\\Laravel\\HungarianWorkdaysServiceProvider"
+            ],
+            "aliases": {
+                "Workdays": "IntrAgile\\HungarianWorkdays\\Laravel\\Facades\\Workdays"
+            }
+        }
+    },
     "scripts": {
         "test": "phpunit",
         "analyse": "phpstan analyse --memory-limit=1G",

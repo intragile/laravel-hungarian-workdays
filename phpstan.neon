@@ -5,3 +5,10 @@ parameters:
     paths:
         - src
         - tests
+    ignoreErrors:
+        # The macros are registered at runtime by the service provider, so they do not exist
+        # on Carbon as far as static analysis can tell. Scoped to the one test that calls them.
+        -
+            message: '#Call to an undefined method Carbon\\Carbon(Immutable)?(\|Carbon\\CarbonImmutable)?::(is|add|sub|next|previous)Hungarian\w+\(\)\.#'
+            identifier: method.notFound
+            path: tests/Feature/CarbonMacrosTest.php
