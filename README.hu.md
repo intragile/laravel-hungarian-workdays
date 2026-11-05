@@ -1,5 +1,7 @@
 # Laravel Hungarian Workdays
 
+Fejlesztő és karbantartó: [IntrAgile Kft.](https://intragile.eu)
+
 [![Tests](https://github.com/intragile/laravel-hungarian-workdays/actions/workflows/tests.yml/badge.svg)](https://github.com/intragile/laravel-hungarian-workdays/actions/workflows/tests.yml)
 [![Latest Version](https://img.shields.io/packagist/v/intragile/laravel-hungarian-workdays.svg)](https://packagist.org/packages/intragile/laravel-hungarian-workdays)
 [![PHP](https://img.shields.io/packagist/php-v/intragile/laravel-hungarian-workdays.svg)](https://packagist.org/packages/intragile/laravel-hungarian-workdays)

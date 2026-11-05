@@ -1,5 +1,7 @@
 # Security Policy
 
+Developed and maintained by [IntrAgile Kft.](https://intragile.eu)
+
 ## Reporting a vulnerability
 
 Please report security issues privately to **info@intragile.eu** rather than opening a public
@@ -10,3 +12,7 @@ reply within a few working days.
 
 This package computes dates offline and stores nothing. The bundled schedule reflects published
 ministerial decrees; verify it against the official source before relying on it for legal deadlines.
+
+---
+
+Developed and maintained by [IntrAgile Kft.](https://intragile.eu).

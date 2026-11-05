@@ -1,5 +1,7 @@
 # Data sources
 
+Developed and maintained by [IntrAgile Kft.](https://intragile.eu)
+
 All bundled data comes from primary legal sources: the official Nemzeti Jogszabálytár
 (`njt.jog.gov.hu`, formerly `njt.hu`) and the Magyar Közlöny. Third-party calendar sites were
 used only to locate decrees, never as a data source. Every pair below was copied from the
@@ -93,3 +95,7 @@ Dates without a year belong to the decree year.
 
 - Magyar Közlöny PDFs were not cross-checked against the NJT texts of 2013-2026.
 - The absence of 2017/2023 decrees is inferred from scanning, see above.
+
+---
+
+Developed and maintained by [IntrAgile Kft.](https://intragile.eu).
