@@ -21,6 +21,10 @@ final class Calendar
 
     private readonly ScheduleRepository $schedules;
 
+    /**
+     * Passing $assumeNoTransfers = true is equivalent to calling assumingNoTransfers(); the
+     * default is strict and throws for years without a schedule.
+     */
     public function __construct(?ScheduleRepository $schedules = null, private readonly bool $assumeNoTransfers = false)
     {
         $this->schedules = $schedules ?? ScheduleRepository::bundled();
@@ -157,8 +161,10 @@ final class Calendar
      */
     public function workdaysBetween(DateTimeInterface $from, DateTimeInterface $to): int
     {
-        $current = $this->midnight($from);
-        $end = $this->midnight($to);
+        // Both ends are reduced to their own Y-m-d in one fixed timezone, so offsets cannot matter.
+        $utc = new DateTimeZone('UTC');
+        $current = new DateTimeImmutable($from->format('Y-m-d'), $utc);
+        $end = new DateTimeImmutable($to->format('Y-m-d'), $utc);
 
         if ($current > $end) {
             throw new InvalidArgumentException('The start date must not be after the end date.');

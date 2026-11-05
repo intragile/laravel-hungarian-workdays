@@ -138,6 +138,26 @@ final class CalendarArithmeticTest extends TestCase
         $this->assertSame(0, $calendar->workdaysBetween(new DateTimeImmutable('2026-12-24'), new DateTimeImmutable('2026-12-24')));
     }
 
+    public function test_workdays_between_judges_ends_by_calendar_date_across_timezones(): void
+    {
+        $calendar = $this->calendar();
+        $utc = new DateTimeZone('UTC');
+        $auckland = new DateTimeZone('Pacific/Auckland');
+
+        $this->assertSame(1, $calendar->workdaysBetween(
+            new DateTimeImmutable('2026-12-23 00:00', $utc),
+            new DateTimeImmutable('2026-12-23', $auckland),
+        ));
+        $this->assertSame(2, $calendar->workdaysBetween(
+            new DateTimeImmutable('2026-12-22', $utc),
+            new DateTimeImmutable('2026-12-23', $auckland),
+        ));
+        $this->assertSame(2, $calendar->workdaysBetween(
+            new DateTimeImmutable('2026-12-22', $auckland),
+            new DateTimeImmutable('2026-12-23 23:00', $utc),
+        ));
+    }
+
     public function test_workdays_between_rejects_reversed_range(): void
     {
         $this->expectException(InvalidArgumentException::class);
