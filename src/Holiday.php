@@ -26,8 +26,10 @@ enum Holiday: string
     case SecondDayOfChristmas = 'second-day-of-christmas';
 
     /**
-     * Returns the date of this holiday in the given year at 00:00 UTC, or null when it
-     * is not a public holiday in that year.
+     * Returns the date of this holiday in the given year at 00:00 UTC (not in any input
+     * timezone), or null when it does not apply in that year. Null covers both years before
+     * the holiday took effect and years before 2013, which are outside the supported range
+     * altogether; it does not mean "a working day". Use Calendar for range-checked answers.
      */
     public function dateIn(int $year): ?DateTimeImmutable
     {
@@ -58,7 +60,9 @@ enum Holiday: string
     }
 
     /**
-     * Returns the holidays of the given year keyed by Y-m-d and sorted by date.
+     * Returns the holidays of the given year keyed by Y-m-d and sorted by date. An empty
+     * array for a year before 2013 means "outside the supported range", not "no holidays";
+     * Calendar::holidays() throws for such years instead.
      *
      * @return array<string, Holiday>
      */
@@ -116,8 +120,9 @@ enum Holiday: string
     }
 
     /**
-     * First year in which this day is a statutory holiday. Granularity is a whole year
-     * because both later additions take effect on 1 January.
+     * First year in which this day is a statutory holiday, never earlier than 2013 (the first
+     * supported year). Granularity is a whole year because both later additions take effect
+     * on 1 January.
      */
     private function effectiveFrom(): int
     {

@@ -12,6 +12,7 @@ use IntrAgile\HungarianWorkdays\ScheduleRepository;
 use IntrAgile\HungarianWorkdays\Tests\Support\BuildsFixtureCalendar;
 use IntrAgile\HungarianWorkdays\Tests\TestCase;
 use IntrAgile\HungarianWorkdays\UncoveredYearException;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 final class CalendarClassificationTest extends TestCase
 {
@@ -70,6 +71,7 @@ final class CalendarClassificationTest extends TestCase
     public function test_before_2013_throws_even_when_assuming_no_transfers(): void
     {
         $this->expectException(UncoveredYearException::class);
+        $this->expectExceptionMessage('2012 is outside the supported range');
 
         $this->calendar()->assumingNoTransfers()->dayType(new DateTimeImmutable('2012-06-06'));
     }
@@ -87,14 +89,57 @@ final class CalendarClassificationTest extends TestCase
         $calendar->dayType(new DateTimeImmutable('2027-01-04'));
     }
 
-    public function test_holidays_work_for_uncovered_future_year_and_before_2013(): void
+    public function test_holidays_work_for_uncovered_future_year(): void
     {
         $calendar = $this->calendar();
 
         $this->assertArrayHasKey('2030-03-15', $calendar->holidays(2030));
-        $this->assertSame([], $calendar->holidays(2012));
-        $this->assertFalse($calendar->isPublicHoliday(new DateTimeImmutable('2012-03-15')));
-        $this->assertNull($calendar->holiday(new DateTimeImmutable('2012-03-15')));
+        $this->assertTrue($calendar->isPublicHoliday(new DateTimeImmutable('2030-03-15')));
+        $this->assertSame('2030-03-15', $calendar->holidays(2030)['2030-03-15']->dateIn(2030)?->format('Y-m-d'));
+    }
+
+    /**
+     * @return array<string, array{0: callable(Calendar): mixed}>
+     */
+    public static function holidayQueriesBefore2013(): array
+    {
+        return [
+            'holidays' => [fn (Calendar $c) => $c->holidays(2012)],
+            'isPublicHoliday' => [fn (Calendar $c) => $c->isPublicHoliday(new DateTimeImmutable('2012-03-15'))],
+            'holiday' => [fn (Calendar $c) => $c->holiday(new DateTimeImmutable('2012-03-15'))],
+        ];
+    }
+
+    /**
+     * @param  callable(Calendar): mixed  $query
+     */
+    #[DataProvider('holidayQueriesBefore2013')]
+    public function test_holiday_queries_before_2013_throw(callable $query): void
+    {
+        $calendar = $this->calendar();
+
+        foreach ([$calendar, $calendar->assumingNoTransfers()] as $subject) {
+            try {
+                $query($subject);
+                $this->fail('Expected UncoveredYearException.');
+            } catch (UncoveredYearException $e) {
+                $this->assertSame(2012, $e->year);
+                $this->assertSame('Hungarian work schedules are supported from 2013; 2012 is outside the supported range.', $e->getMessage());
+            }
+        }
+    }
+
+    public function test_the_floor_year_itself_is_supported_for_holiday_queries(): void
+    {
+        $this->assertTrue($this->calendar()->isPublicHoliday(new DateTimeImmutable('2013-03-15')));
+        $this->assertCount(10, $this->calendar()->holidays(2013));
+    }
+
+    public function test_uncovered_year_message_after_2013_keeps_the_schedule_hint(): void
+    {
+        $this->expectException(UncoveredYearException::class);
+        $this->expectExceptionMessage('No Hungarian work schedule is available for 2027.');
+        $this->calendar()->dayType(new DateTimeImmutable('2027-01-04'));
     }
 
     public function test_time_and_timezone_are_ignored(): void

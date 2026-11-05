@@ -47,7 +47,9 @@ final class Calendar
         $year = (int) $date->format('Y');
         $ymd = $date->format('Y-m-d');
 
-        if ($year < self::FIRST_YEAR || (! $this->assumeNoTransfers && ! $this->schedules->has($year))) {
+        $this->assertSupported($year);
+
+        if (! $this->assumeNoTransfers && ! $this->schedules->has($year)) {
             throw new UncoveredYearException($year);
         }
 
@@ -74,21 +76,37 @@ final class Calendar
         return $this->dayType($date)->isWorkday();
     }
 
+    /**
+     * Holiday rules do not depend on a schedule, so any year from 2013 on can be asked, covered
+     * or not.
+     *
+     * @throws UncoveredYearException for years before 2013
+     */
     public function isPublicHoliday(DateTimeInterface $date): bool
     {
         return $this->holiday($date) !== null;
     }
 
+    /**
+     * @throws UncoveredYearException for years before 2013
+     */
     public function holiday(DateTimeInterface $date): ?Holiday
     {
-        return Holiday::forYear((int) $date->format('Y'))[$date->format('Y-m-d')] ?? null;
+        $year = (int) $date->format('Y');
+        $this->assertSupported($year);
+
+        return Holiday::forYear($year)[$date->format('Y-m-d')] ?? null;
     }
 
     /**
      * @return array<string, Holiday>
+     *
+     * @throws UncoveredYearException for years before 2013
      */
     public function holidays(int $year): array
     {
+        $this->assertSupported($year);
+
         return Holiday::forYear($year);
     }
 
@@ -205,6 +223,13 @@ final class Calendar
         }
 
         return $this->workdaysInMonth($year, $month) * $dailyHours;
+    }
+
+    private function assertSupported(int $year): void
+    {
+        if ($year < self::FIRST_YEAR) {
+            throw UncoveredYearException::beforeSupportedRange($year);
+        }
     }
 
     /**
